@@ -1,5 +1,6 @@
 from module.db import create_connection
 
+## Thống kê số lượng bất động sản theo trạng thái
 def count_properties_by_status():
     conn = create_connection()
     cursor = conn.cursor()
@@ -13,6 +14,7 @@ def count_properties_by_status():
     else:
         print("Không có tài sản nào.")
 
+## Thống kê tổng giá trị bất động sản đang bán
 def total_value_of_properties_for_sale():
     conn = create_connection()
     cursor = conn.cursor()

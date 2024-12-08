@@ -40,10 +40,11 @@ def print_properties_table(properties):
         print("-" * total_width)
 
         # In dữ liệu bảng
-        for idx, property in enumerate(properties, 1):
+        for property in properties:
+            # property[5] là Mô tả, nếu quá dài thì rút gọn
             description = property[5][:column_widths["Mo ta"] - 3] + '...' if len(property[5]) > column_widths["Mo ta"] else property[5]
             print(
-                f"| {idx:<{column_widths['ID']}}"
+                f"| {property[0]:<{column_widths['ID']}}"  # ID lấy trực tiếp từ cơ sở dữ liệu
                 f"| {property[1]:<{column_widths['Ten']}}"
                 f"| {property[2]:<{column_widths['Dia chi']}}"
                 f"| {property[3]:<{column_widths['Gia']},.0f}"
@@ -85,24 +86,81 @@ def list_properties():
     # Gọi hàm in bảng bất động sản
     print_properties_table(properties)
 
-# Hàm sửa bất động sản
 def edit_property():
-    list_properties()
+    list_properties()  # Liet ke tat ca cac bat dong san
     try:
         id = int(prompt("Nhap ID bat dong san muon sua: "))
-        new_name = prompt("Nhap ten moi: ")
-        new_price = prompt("Nhap gia moi: ", validator=NumberValidator())
-        new_status = prompt("Nhap trang thai moi: ")
+        
+        # Hien thi cac lua chon
+        print("Chon thong tin ban muon sua:")
+        print("1. Ten")
+        print("2. Dia chi")
+        print("3. Gia")
+        print("4. Dien tich")
+        print("5. Mo ta")
+        print("6. Trang thai")
+        choice = int(prompt("Nhap so tuong ung (1-6): "))
+        
+        # Khoi tao cac bien moi
+        new_name = None
+        new_address = None
+        new_price = None
+        new_area = None
+        new_description = None
+        new_status = None
 
+        # Xu ly tuy chon sua doi
+        if choice == 1:
+            new_name = prompt("Nhap ten moi: ")
+        elif choice == 2:
+            new_address = prompt("Nhap dia chi moi: ")
+        elif choice == 3:
+            new_price = prompt("Nhap gia moi: ", validator=NumberValidator())
+        elif choice == 4:
+            new_area = prompt("Nhap dien tich moi: ", validator=NumberValidator())
+        elif choice == 5:
+            new_description = prompt("Nhap mo ta moi: ")
+        elif choice == 6:
+            new_status = prompt("Nhap trang thai moi: ")
+
+        # Cap nhat thong tin vao co so du lieu
         conn = create_connection()
         cursor = conn.cursor()
-        cursor.execute('''
-        UPDATE properties
-        SET name = ?, price = ?, status = ?
-        WHERE id = ?''', (new_name, float(new_price), new_status, id))
+        
+        # Duyet qua tung cot va cap nhat chi khi co thay doi
+        query = "UPDATE properties SET "
+        params = []
+
+        if new_name:
+            query += "name = ?, "
+            params.append(new_name)
+        if new_address:
+            query += "address = ?, "
+            params.append(new_address)
+        if new_price:
+            query += "price = ?, "
+            params.append(float(new_price))
+        if new_area:
+            query += "area = ?, "
+            params.append(float(new_area))
+        if new_description:
+            query += "description = ?, "
+            params.append(new_description)
+        if new_status:
+            query += "status = ?, "
+            params.append(new_status)
+
+        # Loai bo dau phay thua o cuoi cau lenh
+        query = query.rstrip(', ') 
+        query += " WHERE id = ?"
+        params.append(id)
+        
+        cursor.execute(query, tuple(params))
         conn.commit()
         conn.close()
+        
         print("Cap nhat thanh cong!")
+        
     except ValueError:
         print("ID khong hop le!")
 

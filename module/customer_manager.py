@@ -93,9 +93,9 @@ def list_customers():
         )
         print("-" * total_width)
 
-        for idx, customer in enumerate(customers, 1):
+        for customer in customers:
             print(
-                f"| {idx:<{column_widths['ID']}}"
+                f"| {customer[0]:<{column_widths['ID']}}"
                 f"| {customer[1]:<{column_widths['Ten']}}"
                 f"| {customer[2]:<{column_widths['So dien thoai']}}"
                 f"| {customer[3]:<{column_widths['Email']}}"
@@ -108,50 +108,123 @@ def list_customers():
 
 # Sửa thông tin khách hàng
 def edit_customer():
-    list_customers()
+    list_customers()  # Liệt kê khách hàng trước
     try:
-        id = int(prompt("Nhap ID khach hang muon sua: "))
+        id = int(prompt("Nhap ID khach hang muon sua: "))  # Nhập ID khách hàng cần sửa
 
-        while True:
-            try:
-                new_name = validate_name(prompt("Nhap ten moi: "))
-                break
-            except ValueError as e:
-                print(f"Loi: {e}. Vui long nhap lai.")
-
-        while True:
-            try:
-                new_phone = validate_phone(prompt("Nhap so dien thoai moi: "))
-                break
-            except ValueError as e:
-                print(f"Loi: {e}. Vui long nhap lai.")
-
-        while True:
-            try:
-                new_email = validate_email(prompt("Nhap email moi: "))
-                break
-            except ValueError as e:
-                print(f"Loi: {e}. Vui long nhap lai.")
-
+        # Kiểm tra nếu ID hợp lệ trong cơ sở dữ liệu
         conn = create_connection()
         cursor = conn.cursor()
-        cursor.execute('''
-        UPDATE customers
-        SET name = ?, phone = ?, email = ?
-        WHERE id = ?''', (new_name, new_phone, new_email, id))
-        conn.commit()
+        cursor.execute('SELECT * FROM customers WHERE id = ?', (id,))
+        customer = cursor.fetchone()
         conn.close()
-        print("Cap nhat khach hang thanh cong!")
+
+        if not customer:
+            print("ID khach hang khong ton tai.")
+            return
+
+        print("\nChon thong tin muon sua:")
+        print("1. Doi ten")
+        print("2. Doi so dien thoai")
+        print("3. Doi email")
+        print("4. Doi danh sach bat dong san quan tam")
+
+        choice = int(prompt("Nhap lua chon (1-4): "))
+
+        if choice == 1:  # Đổi tên
+            while True:
+                try:
+                    new_name = validate_name(prompt("Nhap ten moi: "))
+                    break
+                except ValueError as e:
+                    print(f"Loi: {e}. Vui long nhap lai.")
+            conn = create_connection()
+            cursor = conn.cursor()
+            cursor.execute('''
+            UPDATE customers
+            SET name = ?
+            WHERE id = ?''', (new_name, id))
+            conn.commit()
+            conn.close()
+            print("Doi ten thanh cong!")
+
+        elif choice == 2:  # Đổi số điện thoại
+            while True:
+                try:
+                    new_phone = validate_phone(prompt("Nhap so dien thoai moi: "))
+                    break
+                except ValueError as e:
+                    print(f"Loi: {e}. Vui long nhap lai.")
+            conn = create_connection()
+            cursor = conn.cursor()
+            cursor.execute('''
+            UPDATE customers
+            SET phone = ?
+            WHERE id = ?''', (new_phone, id))
+            conn.commit()
+            conn.close()
+            print("Doi so dien thoai thanh cong!")
+
+        elif choice == 3:  # Đổi email
+            while True:
+                try:
+                    new_email = validate_email(prompt("Nhap email moi: "))
+                    break
+                except ValueError as e:
+                    print(f"Loi: {e}. Vui long nhap lai.")
+            conn = create_connection()
+            cursor = conn.cursor()
+            cursor.execute('''
+            UPDATE customers
+            SET email = ?
+            WHERE id = ?''', (new_email, id))
+            conn.commit()
+            conn.close()
+            print("Doi email thanh cong!")
+
+        elif choice == 4:  # Đổi danh sách bất động sản quan tâm
+            print("\nDanh sach bat dong san:")
+            list_properties()  # Liệt kê các bất động sản
+            interested_properties = prompt("Nhap danh sach bat dong san quan tam (vd: 1, 2, 3): ")
+
+            interested_properties_list = interested_properties.split(',')
+            interested_properties_list = [id.strip() for id in interested_properties_list]
+
+            conn = create_connection()
+            cursor = conn.cursor()
+            cursor.execute('''
+            UPDATE customers
+            SET interested_properties = ?
+            WHERE id = ?''', (','.join(interested_properties_list), id))
+            conn.commit()
+            conn.close()
+            print("Doi danh sach bat dong san quan tam thanh cong!")
+
+        else:
+            print("Lua chon khong hop le.")
+
     except ValueError:
         print("ID khong hop le!")
     except Exception as e:
         print(f"Loi he thong: {e}")
 
+
 # Xóa khách hàng
 def delete_customer():
-    list_customers()
+    list_customers()  # Liệt kê khách hàng trước
     try:
-        id = int(prompt("Nhap ID khach hang muon xoa: "))
+        id = int(prompt("Nhap ID khach hang muon xoa: "))  # Nhập ID khách hàng cần xóa
+
+        # Kiểm tra nếu ID hợp lệ trong cơ sở dữ liệu
+        conn = create_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM customers WHERE id = ?', (id,))
+        customer = cursor.fetchone()
+        conn.close()
+
+        if not customer:
+            print("ID khach hang khong ton tai.")
+            return
 
         conn = create_connection()
         cursor = conn.cursor()
