@@ -46,3 +46,8 @@ class NumberValidator(Validator):
             raise ValidationError(message="Phai nhap mot gia tri so hop le", cursor_position=len(document.text))
 ```
 
+- Chạy file thì gõ: 
+
+``` bash
+python main.py
+````
